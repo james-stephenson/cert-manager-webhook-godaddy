@@ -1,9 +1,10 @@
 package main
 
 import (
-    "context"
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -11,11 +12,10 @@ import (
 	"os"
 	"strings"
 	"time"
-    "errors"
 
-    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-    cmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
+	cmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	extapi "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -82,13 +82,13 @@ type godaddyDNSProviderSolver struct {
 // be used by your provider here, you should reference a Kubernetes Secret
 // resource and fetch these credentials using a Kubernetes clientset.
 type godaddyDNSProviderConfig struct {
-    // These fields will be set by users in the
-    // `issuer.spec.acme.dns01.providers.webhook.config` field.
+	// These fields will be set by users in the
+	// `issuer.spec.acme.dns01.providers.webhook.config` field.
 
-    AuthAPIKey          string                          `json:"authApiKey"`
-    AuthAPISecretRef    cmeta.SecretKeySelector         `json:"authApiSecretRef"`
-    Production          bool                            `json:"production"`
-    TTL                 int                             `json:"ttl"`
+	AuthAPIKey       string                  `json:"authApiKey"`
+	AuthAPISecretRef cmeta.SecretKeySelector `json:"authApiSecretRef"`
+	Production       bool                    `json:"production"`
+	TTL              int                     `json:"ttl"`
 }
 
 // Name is used as the name for this DNS solver when referencing it on the ACME
@@ -114,10 +114,10 @@ func (c *godaddyDNSProviderSolver) Present(ch *v1alpha1.ChallengeRequest) error 
 
 	fmt.Printf("Decoded configuration %v", cfg)
 
-    apiSecret, err := c.validateAndGetSecret(&cfg, ch.ResourceNamespace)
-    if err != nil {
-        return fmt.Errorf("Failed to validate config: %v", err)
-    }
+	apiSecret, err := c.validateAndGetSecret(&cfg, ch.ResourceNamespace)
+	if err != nil {
+		return fmt.Errorf("Failed to validate config: %v", err)
+	}
 
 	// https://developer.godaddy.com/doc/endpoint/domains
 	// OTE environment: https://api.ote-godaddy.com
@@ -160,10 +160,10 @@ func (c *godaddyDNSProviderSolver) CleanUp(ch *v1alpha1.ChallengeRequest) error 
 
 	fmt.Printf("Decoded configuration %v", cfg)
 
-    apiSecret, err := c.validateAndGetSecret(&cfg, ch.ResourceNamespace)
-    if err != nil {
-        return fmt.Errorf("Failed to validate config: %v", err)
-    }
+	apiSecret, err := c.validateAndGetSecret(&cfg, ch.ResourceNamespace)
+	if err != nil {
+		return fmt.Errorf("Failed to validate config: %v", err)
+	}
 
 	// https://developer.godaddy.com/doc/endpoint/domains
 	// OTE environment: https://api.ote-godaddy.com
@@ -247,7 +247,7 @@ func (c *godaddyDNSProviderSolver) updateRecords(cfg godaddyDNSProviderConfig, b
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := ioutil.ReadAll(resp.Body)
-        return fmt.Errorf("could not create record %v; Url: %s; Authorization: sso-key %s:%s; Status: %v; Body: %s", string(body), baseURL, cfg.AuthAPIKey, apiSecret, resp.StatusCode, string(bodyBytes))
+		return fmt.Errorf("could not create record %v; Url: %s; Authorization: sso-key %s:%s; Status: %v; Body: %s", string(body), baseURL, cfg.AuthAPIKey, apiSecret, resp.StatusCode, string(bodyBytes))
 	}
 	return nil
 }
@@ -295,29 +295,28 @@ func (c *godaddyDNSProviderSolver) getZone(fqdn string) (string, error) {
 }
 
 func (c *godaddyDNSProviderSolver) validateAndGetSecret(cfg *godaddyDNSProviderConfig, namespace string) (string, error) {
-    fmt.Printf("validateAndGetSecret...")
-    // Check that the host is defined
-    if cfg.AuthAPIKey == "" {
-        return "", errors.New("No GoDaddy API Key provided")
-    }
+	fmt.Printf("validateAndGetSecret...")
+	// Check that the host is defined
+	if cfg.AuthAPIKey == "" {
+		return "", errors.New("No GoDaddy API Key provided")
+	}
 
-    // Try to load the API key
-    if cfg.AuthAPISecretRef.LocalObjectReference.Name == "" {
-        return "", errors.New("No GoDaddy API secret provided")
-    }
+	// Try to load the API key
+	if cfg.AuthAPISecretRef.LocalObjectReference.Name == "" {
+		return "", errors.New("No GoDaddy API secret provided")
+	}
 
-    sec, err := c.client.CoreV1().Secrets(namespace).Get(context.TODO(), cfg.AuthAPISecretRef.LocalObjectReference.Name, metav1.GetOptions{})
-    if err != nil {
-        return "", err
-    }
+	sec, err := c.client.CoreV1().Secrets(namespace).Get(context.TODO(), cfg.AuthAPISecretRef.LocalObjectReference.Name, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
 
-    secBytes, ok := sec.Data[cfg.AuthAPISecretRef.Key]
-    if !ok {
-        return "", fmt.Errorf("Key %q not found in secret \"%s/%s\"", cfg.AuthAPISecretRef.Key, cfg.AuthAPISecretRef.LocalObjectReference.Name, namespace)
-    }
+	secBytes, ok := sec.Data[cfg.AuthAPISecretRef.Key]
+	if !ok {
+		return "", fmt.Errorf("Key %q not found in secret \"%s/%s\"", cfg.AuthAPISecretRef.Key, cfg.AuthAPISecretRef.LocalObjectReference.Name, namespace)
+	}
 
-    apiKey := string(secBytes)
+	apiKey := string(secBytes)
 
-    return apiKey, nil
+	return apiKey, nil
 }
-
