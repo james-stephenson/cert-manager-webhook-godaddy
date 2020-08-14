@@ -5,7 +5,7 @@ set -e
 #hack_dir=$(dirname ${BASH_SOURCE})
 #source ${hack_dir}/common.sh
 
-k8s_version=1.14.1
+k8s_version=1.16.4
 goarch=amd64
 goos="unknown"
 
@@ -57,5 +57,5 @@ function fetch_kb_tools {
 header_text "using tools"
 fetch_kb_tools
 
-header_text "kubebuilder tools (etcd, kubectl, kube-apiserver)used to perform local tests installed under $tmp_root/kubebuilder/bin/"
+header_text "kubebuilder tools (etcd, kubectl, kube-apiserver) used to perform local tests installed under $tmp_root/kubebuilder/bin/"
 exit 0
