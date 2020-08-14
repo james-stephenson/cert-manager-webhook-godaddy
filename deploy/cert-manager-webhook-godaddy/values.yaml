@@ -5,19 +5,19 @@
 replicaCount: 1
 
 image:
-  repository: inspectorio/cert-manager-webhook-godaddy
-  tag: v0.1.1
+  repository: docker.registry.svc.jamesstephenson.net/cert-manager-webhook-godaddy-arm
+  tag: 0.1.0
   pullPolicy: IfNotPresent
 
-groupName: acme.mycompany.com
+groupName: acme.jamesstephenson.net
 
 certManager:
   namespace: cert-manager
   serviceAccountName: cert-manager
 
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+nameOverride: "godaddy-solver"
+fullnameOverride: "godaddy-solver"
 
 service:
   type: ClusterIP

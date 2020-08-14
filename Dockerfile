@@ -8,12 +8,6 @@ ENV GO111MODULE=on
 COPY go.mod .
 COPY go.sum .
 
-RUN go mod download || true 
-RUN go mod download || true 
-RUN go mod download || true 
-RUN go mod download || true 
-RUN go mod download || true 
-RUN go mod download || true
 RUN go mod download 
 
 FROM build_deps AS build
@@ -22,7 +16,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 go build -o webhook -ldflags '-w -extldflags "-static"' .
 
-FROM alpine:3.9
+FROM alpine:3.12
 
 RUN apk add --no-cache ca-certificates
 
