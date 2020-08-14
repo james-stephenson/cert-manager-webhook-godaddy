@@ -1,6 +1,9 @@
 {
-  "authAPIKey": "your GoDaddy authAPIKey",
-  "authAPISecret": "your GoDaddy authAPISecret",
+  "authApiKey": "2sBXVmg9As_TerCY8gTmrnbuK9seoZhnr", 
+  "authApiSecretRef": {
+    "name": "godaddy-credentials",
+    "key": "secret"
+  },
   "production": true,
   "ttl": 600
 }

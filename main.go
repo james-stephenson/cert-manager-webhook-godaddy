@@ -13,14 +13,14 @@ import (
 	"strings"
 	"time"
 
-	cmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
-	extapi "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	"github.com/jetstack/cert-manager/pkg/acme/webhook/apis/acme/v1alpha1"
+	acme "github.com/jetstack/cert-manager/pkg/acme/webhook/apis/acme/v1alpha1"
 	"github.com/jetstack/cert-manager/pkg/acme/webhook/cmd"
+	cmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	"github.com/jetstack/cert-manager/pkg/issuer/acme/dns/util"
 
 	pkgutil "github.com/jetstack/cert-manager/pkg/util"
@@ -106,7 +106,7 @@ func (c *godaddyDNSProviderSolver) Name() string {
 // This method should tolerate being called multiple times with the same value.
 // cert-manager itself will later perform a self check to ensure that the
 // solver has correctly configured the DNS provider.
-func (c *godaddyDNSProviderSolver) Present(ch *v1alpha1.ChallengeRequest) error {
+func (c *godaddyDNSProviderSolver) Present(ch *acme.ChallengeRequest) error {
 	cfg, err := loadConfig(ch.Config)
 	if err != nil {
 		return err
@@ -152,7 +152,7 @@ func (c *godaddyDNSProviderSolver) Present(ch *v1alpha1.ChallengeRequest) error 
 // value provided on the ChallengeRequest should be cleaned up.
 // This is in order to facilitate multiple DNS validations for the same domain
 // concurrently.
-func (c *godaddyDNSProviderSolver) CleanUp(ch *v1alpha1.ChallengeRequest) error {
+func (c *godaddyDNSProviderSolver) CleanUp(ch *acme.ChallengeRequest) error {
 	cfg, err := loadConfig(ch.Config)
 	if err != nil {
 		return err
@@ -201,9 +201,6 @@ func (c *godaddyDNSProviderSolver) CleanUp(ch *v1alpha1.ChallengeRequest) error 
 // The stopCh can be used to handle early termination of the webhook, in cases
 // where a SIGTERM or similar signal is sent to the webhook process.
 func (c *godaddyDNSProviderSolver) Initialize(kubeClientConfig *rest.Config, stopCh <-chan struct{}) error {
-	///// UNCOMMENT THE BELOW CODE TO MAKE A KUBERNETES CLIENTSET AVAILABLE TO
-	///// YOUR CUSTOM DNS PROVIDER
-
 	cl, err := kubernetes.NewForConfig(kubeClientConfig)
 	if err != nil {
 		return err
@@ -211,13 +208,12 @@ func (c *godaddyDNSProviderSolver) Initialize(kubeClientConfig *rest.Config, sto
 
 	c.client = *cl
 
-	///// END OF CODE TO MAKE KUBERNETES CLIENTSET AVAILABLE
 	return nil
 }
 
 // loadConfig is a small helper function that decodes JSON configuration into
 // the typed config struct.
-func loadConfig(cfgJSON *extapi.JSON) (godaddyDNSProviderConfig, error) {
+func loadConfig(cfgJSON *apiext.JSON) (godaddyDNSProviderConfig, error) {
 	cfg := godaddyDNSProviderConfig{}
 	// handle the 'base case' where no configuration has been provided
 	if cfgJSON == nil {
@@ -306,7 +302,7 @@ func (c *godaddyDNSProviderSolver) validateAndGetSecret(cfg *godaddyDNSProviderC
 		return "", errors.New("No GoDaddy API secret provided")
 	}
 
-	sec, err := c.client.CoreV1().Secrets(namespace).Get(context.TODO(), cfg.AuthAPISecretRef.LocalObjectReference.Name, metav1.GetOptions{})
+	sec, err := c.client.CoreV1().Secrets(namespace).Get(context.TODO(), cfg.AuthAPISecretRef.LocalObjectReference.Name, meta.GetOptions{})
 	if err != nil {
 		return "", err
 	}

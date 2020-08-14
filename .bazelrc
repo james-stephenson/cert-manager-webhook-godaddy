@@ -1,0 +1,2 @@
+--verbose_failures
+build --workspace_status_command $(pwd)/vars.sh

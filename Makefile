@@ -2,13 +2,20 @@ OUT := $(shell pwd)/_out
 
 $(shell mkdir -p "$(OUT)")
 
+.DEFAULT_GOAL := build
+.PHONY: verify test build clean rendered-manifest.yaml
+
 verify:
 	go test -v .
 
-build:
-	docker build -t "$(IMAGE_NAME):$(IMAGE_TAG)" .
+test: verify
 
-.PHONY: rendered-manifest.yaml
+build:
+	bazel build --platforms=@io_bazel_rules_go//go/toolchain:linux_arm 
+
+clean:
+	rm -rf "$(OUT)"
+
 rendered-manifest.yaml:
 	helm template \
 		--name-template godaddy-solver \

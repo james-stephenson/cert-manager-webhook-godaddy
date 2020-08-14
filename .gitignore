@@ -16,3 +16,8 @@ cert-manager-webhook-example
 
 # Vi swap files
 .*.sw*
+
+# Bazel build symlinks
+/bazel-*
+
+/_out

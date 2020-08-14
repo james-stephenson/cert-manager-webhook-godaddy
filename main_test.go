@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	zone = os.Getenv("TEST_ZONE_NAME")
+	zone               = os.Getenv("TEST_ZONE_NAME")
+	kubeBuilderBinPath = "./_out/kubebuilder/bin"
 )
 
 func TestRunsSuite(t *testing.T) {
@@ -20,7 +21,7 @@ func TestRunsSuite(t *testing.T) {
 		dns.SetResolvedZone(zone),
 		dns.SetAllowAmbientCredentials(false),
 		dns.SetManifestPath("testdata/godaddy"),
-		dns.SetBinariesPath("_out/kubebuilder/bin"),
+		dns.SetBinariesPath(kubeBuilderBinPath),
 	)
 
 	fixture.RunConformance(t)
